@@ -55,6 +55,7 @@ app.post('/generateImage', (req, res) => {
     })
 })
 
-app.listen(3000, ()=>{
-    console.log("server is up and running port 3000")
+const port = process.env.PORT || 6001;
+app.listen(port, ()=>{
+    console.log("server is up and running port "+ port);
 })
