@@ -27,6 +27,17 @@ app.post('/query', (req, res) => {
     .then((response)=>{
         return response.data.choices[0].text;
     })
+    /*
+    .then((answer)=> {
+        return answer.replace(/\n\n/g, "\n");
+    })
+    */
+    .then((answer)=>{
+        const array = answer.split("\n")
+        const formatOne = array.filter((value)=>value)
+        const formatTwo = formatOne.map((value)=>value.trim());
+        return formatTwo;
+    })
     .then((result)=>{
         res.json({result:result});
     })
