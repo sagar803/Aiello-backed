@@ -32,7 +32,7 @@ app.post("/query/gemini", async (req, res) => {
     const data = array.filter((value) => value).map((value) => value.trim());
     res.json({ result: data });
   } catch (error) {
-    console.log("Error:", error.message);
+    console.log("Error:", error);
     res.status(500).json({ error: error.message });
   }
 });
