@@ -1,7 +1,7 @@
 import express from "express";
-import { mimic } from '../controllers/mimic.js'
+import { mimic } from "../controllers/mimic.js";
 
 const router = express.Router();
-router.post('/mimic', music);
+router.post("/mimic", mimic);
 
 export default router;

@@ -5,17 +5,39 @@ import { Configuration, OpenAIApi } from "openai";
 import codeRoutes from "./routes/code.js";
 import musicRoutes from "./routes/music.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import session from "express-session";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import bcrypt from "bcryptjs";
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Update with your frontend URL
+    credentials: true,
+  })
+);
 dotenv.config();
+app.use(
+  session({
+    secret: "SomeSuperStrongSecret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 const gemini_key = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(gemini_key);
 
 const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
 const openai = new OpenAIApi(configuration);
+
+const users = [];
 
 app.post("/code", codeRoutes);
 app.post("/music", musicRoutes);
@@ -81,6 +103,95 @@ app.post("/generateImage", async (req, res) => {
       .json({ error: "An error occurred on the server." });
   }
 });
+
+// // Configure Passport Local Strategy
+// passport.use(
+//   new LocalStrategy((username, password, done) => {
+//     const user = users.find((u) => u.username === username);
+//     if (!user) {
+//       return done(null, false, { message: "Incorrect username." });
+//     }
+//     bcrypt.compare(password, user.password, (err, res) => {
+//       if (res) {
+//         return done(null, user);
+//       } else {
+//         return done(null, false, { message: "Incorrect password." });
+//       }
+//     });
+//   })
+// );
+
+// Configure Passport Google Strategy
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "http://localhost:6001/auth/google/callback",
+    },
+    function (accessToken, refreshToken, profile, done) {
+      let user = users.find((u) => u.googleId === profile.id);
+      if (!user) {
+        user = {
+          id: users.length + 1,
+          googleId: profile.id,
+          username: profile.displayName,
+          firstName: profile.name.givenName,
+          lastName: profile.name.familyName,
+          picture: profile.photos[0].value,
+          email: profile.emails[0].value,
+        };
+        users.push(user);
+      }
+      return done(null, user);
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  const user = users.find((u) => u.id === id);
+  done(null, user);
+});
+
+// Routes
+// app.post("/login", passport.authenticate("local"), (req, res) => {
+//   res.send({ user: req.user });
+// });
+
+app.get("/logout", (req, res) => {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.send({ message: "Logged out" });
+  });
+});
+
+app.get("/user", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.send(req.user);
+  } else {
+    res.send(null);
+  }
+});
+
+// Google Auth Routes
+app.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/" }),
+  (req, res) => {
+    res.redirect("http://localhost:5173");
+  }
+);
 
 const port = process.env.PORT || 6001;
 app.listen(port, () => {
