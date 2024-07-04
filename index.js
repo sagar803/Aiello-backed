@@ -31,8 +31,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-const gemini_key = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(gemini_key);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
 const openai = new OpenAIApi(configuration);
@@ -42,6 +41,37 @@ const users = [];
 app.post("/code", codeRoutes);
 app.post("/music", musicRoutes);
 
+app.post("/query/geministream", async (req, res) => {
+  try {
+    const prompt = req.body.prompt;
+    console.log(prompt);
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContentStream(prompt);
+
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Transfer-Encoding", "chunked");
+
+    for await (const chunk of result.stream) {
+      if (
+        chunk &&
+        chunk.candidates &&
+        chunk.candidates[0] &&
+        chunk.candidates[0].content
+      ) {
+        let text = chunk.candidates[0].content.parts[0].text;
+        res.write(text); // Send the chunk to the client
+      }
+    }
+
+    // End the response once all chunks have been processed
+    res.end();
+  } catch (error) {
+    console.log("Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post("/query/gemini", async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -49,15 +79,36 @@ app.post("/query/gemini", async (req, res) => {
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
-    const r1 = result?.response?.candidates[0]?.content.parts[0]?.text;
-    const array = r1.split("\n");
-    const data = array.filter((value) => value).map((value) => value.trim());
+    const data = result?.response?.candidates[0]?.content.parts[0]?.text;
     res.json({ result: data });
   } catch (error) {
     console.log("Error:", error);
     res.status(500).json({ error: error.message });
   }
 });
+//dev
+// app.post("/query/gemini", async (req, res) => {
+//   try {
+//     const { message, history } = req.body;
+
+//     const formattedHistory = history.map((item) => ({
+//       role: item.role,
+//       parts: Array.isArray(item.parts) ? item.parts : [item.parts],
+//     }));
+
+//     console.log(formattedHistory);
+
+//     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+//     const chat = model.startChat({ formattedHistory });
+//     const result = await chat.sendMessage(message);
+//     const response = result.response;
+//     const text = response.text();
+//     res.send(text);
+//   } catch (error) {
+//     console.log("Error:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 
 app.post("/query/openai", async (req, res) => {
   try {
@@ -75,9 +126,9 @@ app.post("/query/openai", async (req, res) => {
     });
     console.log(response);
     const answer = response.data.choices[0].text;
-    const array = answer.split("\n");
-    const result = array.filter((value) => value).map((value) => value.trim());
-    res.json({ result: result });
+    // const array = answer.split("\n");
+    // const result = array.filter((value) => value).map((value) => value.trim());
+    res.json({ result: answer });
   } catch (error) {
     console.log("Error:", error.message);
     res.status(error.response.status).json({ error: error.message });
