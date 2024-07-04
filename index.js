@@ -240,7 +240,7 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    res.redirect("http://localhost:5173");
+    res.redirect(`${process.env.CLIENT_URL}`);
   }
 );
 
