@@ -15,7 +15,6 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173", // Update with your frontend URL
     credentials: true,
   })
 );
@@ -28,6 +27,7 @@ app.use(
   })
 );
 
+console.log(process.env.CLIENT_URL);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -38,6 +38,7 @@ const openai = new OpenAIApi(configuration);
 
 const users = [];
 
+app.get("/", async (req, res) => res.json({ message: "Backend is working!" }));
 app.post("/code", codeRoutes);
 app.post("/music", musicRoutes);
 
