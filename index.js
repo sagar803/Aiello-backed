@@ -30,25 +30,11 @@ app.use((req, res, next) => {
   next();
 });
 dotenv.config();
-// app.use(
-//   session({
-//     secret: "SomeSuperStrongSecret",
-//     resave: false,
-//     saveUninitialized: false,
-//   })
-// );
-
 app.use(
   session({
     secret: "SomeSuperStrongSecret",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production", // true in production
-      httpOnly: true,
-      sameSite: "none", // important for cross-origin requests
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
   })
 );
 
@@ -258,16 +244,6 @@ app.get("/user", (req, res) => {
   } else {
     res.send(null);
   }
-});
-
-app.get("/debug", (req, res) => {
-  res.json({
-    session: req.session,
-    user: req.user,
-    isAuthenticated: req.isAuthenticated(),
-    cookies: req.cookies,
-    headers: req.headers,
-  });
 });
 
 // Google Auth Routes
