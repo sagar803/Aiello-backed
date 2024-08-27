@@ -16,14 +16,21 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const app = express();
 app.use(express.json());
+
 app.use((req, res, next) => {
   console.log("Session ID:", req.sessionID); // Logs the session ID
   console.log("Session Data:", req.session); // Logs session data
   next();
 });
 
+app.use((req, res, next) => {
+  console.log("Set-Cookie:", res.getHeader("Set-Cookie")); // Log the Set-Cookie header
+  next();
+});
+
 app.use(
   cors({
+    origin: "https://aiello.netlify.app", // Your frontend domain
     credentials: true,
   })
 );
