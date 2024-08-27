@@ -11,6 +11,8 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import bcrypt from "bcryptjs";
 
+const allowedOrigins = ["http://localhost:5173", "https://aiello.netlify.app"];
+
 const app = express();
 app.use(express.json());
 app.use(
@@ -19,11 +21,12 @@ app.use(
   })
 );
 app.use((req, res, next) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "http://localhost:5173",
-    "https://aiello.netlify.app/"
-  );
+  const origin = req.get("Origin");
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", ""); // Set to empty if origin is not allowed
+  }
   next();
 });
 dotenv.config();
