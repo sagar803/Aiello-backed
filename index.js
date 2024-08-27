@@ -23,14 +23,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  console.log("Set-Cookie:", res.getHeader("Set-Cookie")); // Log the Set-Cookie header
-  next();
-});
-
 app.use(
   cors({
-    origin: "https://aiello.netlify.app", // Your frontend domain
+    origin: ["https://aiello.netlify.app", "http://localhost:5173"], // Your frontend domain
     credentials: true,
   })
 );
@@ -51,7 +46,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: isProduction, // true in production (HTTPS), false in development (HTTP)
-      sameSite: isProduction ? "None" : "lax", // Allow cross-origin requests
+      sameSite: isProduction ? "none" : "lax", // Allow cross-origin requests
     },
   })
 );
