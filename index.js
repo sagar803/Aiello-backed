@@ -12,6 +12,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import bcrypt from "bcryptjs";
 
 const allowedOrigins = ["http://localhost:5173", "https://aiello.netlify.app"];
+const isProduction = process.env.NODE_ENV === "production";
 
 const app = express();
 app.use(express.json());
@@ -35,6 +36,9 @@ app.use(
     secret: "SomeSuperStrongSecret",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: isProduction, // true in production (HTTPS), false in development (HTTP)
+    },
   })
 );
 
