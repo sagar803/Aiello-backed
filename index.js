@@ -20,7 +20,7 @@ const isProduction = process.env.NODE_ENV === "production";
 /*******CONFIGURATIONS*************************************** */
 
 const app = express();
-app.set("trust proxy", 1);
+// app.set("trust proxy", 1);
 app.use(express.json());
 
 app.use(
@@ -42,12 +42,13 @@ app.use(
     secret: process.env.SESSION_SECRET || "SomeSuperStrongSecret",
     resave: false,
     saveUninitialized: false,
-    // cookie: {
-    //   secure: isProduction,
-    //   sameSite: isProduction ? "none" : "lax",
-    //   maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    //   httpOnly: true,
-    // },
+    cookie: {
+      // secure: isProduction,
+      // sameSite: isProduction ? "none" : "lax",
+      // maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      // httpOnly: true,
+      domain: isProduction ? ".onrender.com" : "localhost",
+    },
   })
 );
 app.use(passport.initialize());
