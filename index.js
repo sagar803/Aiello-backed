@@ -238,7 +238,6 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    console.log("Full request:", JSON.stringify(req, null, 2));
     res.redirect(`${process.env.CLIENT_URL}`);
   }
 );
