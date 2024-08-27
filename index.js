@@ -235,10 +235,11 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/user", (req, res) => {
-  console.log("User", users);
+  console.log("UserArray", users);
   console.log(req.isAuthenticated());
 
   if (req.isAuthenticated()) {
+    console.log("User", req.user);
     res.send(req.user);
   } else {
     res.send(null);
