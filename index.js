@@ -235,6 +235,9 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/user", (req, res) => {
+  console.log("User", users);
+  console.log(req.isAuthenticated());
+
   if (req.isAuthenticated()) {
     res.send(req.user);
   } else {
