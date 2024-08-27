@@ -16,6 +16,12 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const app = express();
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log("Session ID:", req.sessionID); // Logs the session ID
+  console.log("Session Data:", req.session); // Logs session data
+  next();
+});
+
 app.use(
   cors({
     credentials: true,
@@ -38,6 +44,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: isProduction, // true in production (HTTPS), false in development (HTTP)
+      sameSite: isProduction ? "None" : "lax", // Allow cross-origin requests
     },
   })
 );
