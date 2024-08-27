@@ -212,11 +212,14 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
+  console.log("Serializing user:", user);
   done(null, user.id);
 });
 
 passport.deserializeUser((id, done) => {
+  console.log("Deserializing user ID:", id);
   const user = users.find((u) => u.id === id);
+  console.log("Deserialized user:", user);
   done(null, user);
 });
 
