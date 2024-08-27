@@ -11,7 +11,11 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import bcrypt from "bcryptjs";
 
-const allowedOrigins = ["http://localhost:5173", "https://aiello.netlify.app"];
+const allowedOrigins = [
+  "https://aiello-client.onrender.com",
+  "http://localhost:5173",
+  "https://aiello.netlify.app",
+];
 const isProduction = process.env.NODE_ENV === "production";
 
 const app = express();
@@ -25,7 +29,11 @@ app.use((req, res, next) => {
 
 app.use(
   cors({
-    origin: ["https://aiello.netlify.app", "http://localhost:5173"], // Your frontend domain
+    origin: [
+      "https://aiello-client.onrender.com",
+      "https://aiello.netlify.app",
+      "http://localhost:5173",
+    ], // Your frontend domain
     credentials: true,
   })
 );
