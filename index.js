@@ -9,7 +9,6 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import bcrypt from "bcryptjs";
 
 const allowedOrigins = [
   "https://aiello-client.onrender.com",
@@ -18,6 +17,9 @@ const allowedOrigins = [
 ];
 const isProduction = process.env.NODE_ENV === "production";
 
+/*******CONFIGURATIONS*************************************** */
+
+app.set("trust proxy", 1);
 const app = express();
 app.use(express.json());
 
@@ -34,29 +36,18 @@ app.use(
   })
 );
 
-// Remove the custom middleware that sets Access-Control-Allow-Origin
-// app.use((req, res, next) => {
-//   const origin = req.get("Origin");
-//   if (allowedOrigins.includes(origin)) {
-//     res.setHeader("Access-Control-Allow-Origin", origin);
-//   } else {
-//     res.setHeader("Access-Control-Allow-Origin", ""); // Set to empty if origin is not allowed
-//   }
-//   next();
-// });
 dotenv.config();
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "SomeSuperStrongSecret", // Use an environment variable for the secret
+    secret: process.env.SESSION_SECRET || "SomeSuperStrongSecret",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      secure: isProduction, // This is correct
-      sameSite: isProduction ? "none" : "lax", // This is correct
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      httpOnly: true,
-      // Remove the domain setting
-    },
+    // cookie: {
+    //   secure: isProduction,
+    //   sameSite: isProduction ? "none" : "lax",
+    //   maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    //   httpOnly: true,
+    // },
   })
 );
 app.use(passport.initialize());
@@ -68,6 +59,7 @@ const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
 const openai = new OpenAIApi(configuration);
 
 const users = [];
+/********************************************** */
 
 app.get("/", async (req, res) => res.json({ message: "Backend is working!" }));
 app.post("/code", codeRoutes);
@@ -103,7 +95,6 @@ app.post("/query/geministream", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 app.post("/query/gemini", async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -118,30 +109,6 @@ app.post("/query/gemini", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-//dev
-// app.post("/query/gemini", async (req, res) => {
-//   try {
-//     const { message, history } = req.body;
-
-//     const formattedHistory = history.map((item) => ({
-//       role: item.role,
-//       parts: Array.isArray(item.parts) ? item.parts : [item.parts],
-//     }));
-
-//     console.log(formattedHistory);
-
-//     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-//     const chat = model.startChat({ formattedHistory });
-//     const result = await chat.sendMessage(message);
-//     const response = result.response;
-//     const text = response.text();
-//     res.send(text);
-//   } catch (error) {
-//     console.log("Error:", error);
-//     res.status(500).json({ error: error.message });
-//   }
-// });
-
 app.post("/query/openai", async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -166,7 +133,6 @@ app.post("/query/openai", async (req, res) => {
     res.status(error.response.status).json({ error: error.message });
   }
 });
-
 app.post("/generateImage", async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -187,24 +153,8 @@ app.post("/generateImage", async (req, res) => {
   }
 });
 
-// // Configure Passport Local Strategy
-// passport.use(
-//   new LocalStrategy((username, password, done) => {
-//     const user = users.find((u) => u.username === username);
-//     if (!user) {
-//       return done(null, false, { message: "Incorrect username." });
-//     }
-//     bcrypt.compare(password, user.password, (err, res) => {
-//       if (res) {
-//         return done(null, user);
-//       } else {
-//         return done(null, false, { message: "Incorrect password." });
-//       }
-//     });
-//   })
-// );
+/********************************************** */
 
-// Configure Passport Google Strategy
 passport.use(
   new GoogleStrategy(
     {
@@ -242,11 +192,6 @@ passport.deserializeUser((id, done) => {
   console.log("Deserialized user:", user);
   done(null, user);
 });
-
-// Routes
-// app.post("/login", passport.authenticate("local"), (req, res) => {
-//   res.send({ user: req.user });
-// });
 
 app.get("/logout", (req, res) => {
   req.logout(function (err) {
@@ -293,6 +238,7 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
+    console.log("Full request:", JSON.stringify(req, null, 2));
     res.redirect(`${process.env.CLIENT_URL}`);
   }
 );
