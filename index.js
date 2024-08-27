@@ -19,8 +19,8 @@ const isProduction = process.env.NODE_ENV === "production";
 
 /*******CONFIGURATIONS*************************************** */
 
-app.set("trust proxy", 1);
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.json());
 
 app.use(
