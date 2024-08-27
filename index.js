@@ -23,34 +23,42 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: allowedOrigins, // Your frontend domain
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
-app.use((req, res, next) => {
-  const origin = req.get("Origin");
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  } else {
-    res.setHeader("Access-Control-Allow-Origin", ""); // Set to empty if origin is not allowed
-  }
-  next();
-});
+
+// Remove the custom middleware that sets Access-Control-Allow-Origin
+// app.use((req, res, next) => {
+//   const origin = req.get("Origin");
+//   if (allowedOrigins.includes(origin)) {
+//     res.setHeader("Access-Control-Allow-Origin", origin);
+//   } else {
+//     res.setHeader("Access-Control-Allow-Origin", ""); // Set to empty if origin is not allowed
+//   }
+//   next();
+// });
 dotenv.config();
 app.use(
   session({
-    secret: "SomeSuperStrongSecret",
+    secret: process.env.SESSION_SECRET || "SomeSuperStrongSecret", // Use an environment variable for the secret
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: isProduction, // true in production (HTTPS), false in development (HTTP)
-      sameSite: isProduction ? "none" : "lax", // Allow cross-origin requests
-      domain: isProduction ? "onrender.com" : "localhost", // Allow cross-origin requests
+      secure: isProduction, // This is correct
+      sameSite: isProduction ? "none" : "lax", // This is correct
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      // Remove the domain setting
     },
   })
 );
-
-console.log(process.env.CLIENT_URL);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -266,7 +274,21 @@ app.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
+app.get("/debug/session", (req, res) => {
+  res.json({
+    session: req.session,
+    sessionID: req.sessionID,
+    cookies: req.cookies,
+    user: req.user,
+    isAuthenticated: req.isAuthenticated(),
+  });
+});
 
+app.get("/debug/headers", (req, res) => {
+  res.json({
+    headers: req.headers,
+  });
+});
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
