@@ -21,19 +21,9 @@ const isProduction = process.env.NODE_ENV === "production";
 const app = express();
 app.use(express.json());
 
-app.use((req, res, next) => {
-  console.log("Session ID:", req.sessionID); // Logs the session ID
-  console.log("Session Data:", req.session); // Logs session data
-  next();
-});
-
 app.use(
   cors({
-    origin: [
-      "https://aiello-client.onrender.com",
-      "https://aiello.netlify.app",
-      "http://localhost:5173",
-    ], // Your frontend domain
+    origin: allowedOrigins, // Your frontend domain
     credentials: true,
   })
 );
@@ -55,6 +45,7 @@ app.use(
     cookie: {
       secure: isProduction, // true in production (HTTPS), false in development (HTTP)
       sameSite: isProduction ? "none" : "lax", // Allow cross-origin requests
+      domain: isProduction ? "onrender.com" : "localhost", // Allow cross-origin requests
     },
   })
 );
