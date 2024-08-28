@@ -20,7 +20,7 @@ const isProduction = process.env.NODE_ENV === "production";
 /*******CONFIGURATIONS*************************************** */
 
 const app = express();
-// app.set("trust proxy", 1);
+app.set("trust proxy", 1);
 app.use(express.json());
 
 app.use(
@@ -43,10 +43,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      // secure: isProduction,
-      // sameSite: isProduction ? "none" : "lax",
-      // maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      // httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
       domain: isProduction ? ".onrender.com" : "localhost",
     },
   })
