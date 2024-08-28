@@ -47,7 +47,7 @@ app.use(
       sameSite: isProduction ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      domain: isProduction ? ".onrender.com" : "localhost",
+      // domain: isProduction ? ".onrender.com" : "localhost",
     },
   })
 );
